@@ -1,0 +1,82 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'day_1'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=day_1",
+                    "--package=day_1"
+                ],
+                "filter": {
+                    "name": "day_1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'day_1'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=day_1",
+                    "--package=day_1"
+                ],
+                "filter": {
+                    "name": "day_1",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'aoc_2022_rust'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=aoc_2022_rust",
+                    "--package=aoc_2022_rust"
+                ],
+                "filter": {
+                    "name": "aoc_2022_rust",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'aoc_2022_rust'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=aoc_2022_rust",
+                    "--package=aoc_2022_rust"
+                ],
+                "filter": {
+                    "name": "aoc_2022_rust",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
