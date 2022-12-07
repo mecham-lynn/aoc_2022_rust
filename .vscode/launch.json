@@ -4,6 +4,23 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "type": "lldb",
+        "request": "launch",
+        "name": "Debug day_5",
+        "cargo": {
+            "args": [
+                "build",
+                    "--bin=day_5",
+                    "--package=day_5"
+            ],
+            "filter": {
+                "name": "day_5",
+                "kind": "bin"
+            }
+        },
+        "args": ["--demo-text"]
+    },
         {
             "type": "lldb",
             "request": "launch",
