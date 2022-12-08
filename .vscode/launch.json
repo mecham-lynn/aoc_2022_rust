@@ -19,7 +19,7 @@
                 "kind": "bin"
             }
         },
-        "args": ["--demo-text"]
+        "args": []
     },
         {
             "type": "lldb",
