@@ -32,14 +32,14 @@ fn main() {
                     let dir = terminal_output[2];
                     if dir == ".." {
                         dir_path.pop();
-                        println!("Moving to {}",dir_path.display());
+                        // println!("Moving to {}",dir_path.display());
                         current_dir = match dir_path.file_name() {
                             Some(a) => a.to_str().unwrap(),
                             None => "/",
                         }
                     } else {
                         dir_path.push(dir);
-                        println!("Moving to {}",dir_path.display());
+                        // println!("Moving to {}",dir_path.display());
                         current_dir = match dir_path.file_name() {
                             Some(a) => a.to_str().unwrap(),
                             None => "/",
@@ -47,65 +47,32 @@ fn main() {
                     }
                 },
                 "ls" => {
-                    println!("listing contents of {}", dir_path.display());
+                    // println!("listing contents of {}", dir_path.display());
                 }
                 a => panic!("unknown command {a} found")
             }
         } else {
-            println!("current_dir {current_dir}");
-            let size = match terminal_output[0].parse::<usize>() {
-                Ok(a) => a,
-                Err(_) => continue,
-            };
-            // let filename = terminal_output[1];            
-            // move up the dir_path until we hit / and iterate the size of each dir
-            for full_path in dir_path.ancestors() {
-                let current = match full_path.file_name() {
-                    Some(a) => a.to_str().unwrap().to_owned(),
-                    None => "/".to_owned(),
-                };
-                dir_map.entry(current).and_modify(|a| {*a += size}).or_insert(size);
+            // println!("current_dir {current_dir}");
+
+            if terminal_output[0].contains("dir") {
+                let mut new_dir = dir_path.clone();
+                new_dir.push(terminal_output[1]);
+                let dir_string = new_dir.as_path().to_str().unwrap().to_string();
+                if !dir_map.contains_key(&dir_string) {
+                    dir_map.insert(dir_string, 0);
+                }
+            } else {
+                let size = terminal_output[0].parse().unwrap();
+                for full_path in dir_path.ancestors() {
+
+                    let dir_string = full_path.to_str().unwrap().to_string();
+                    dir_map.entry(dir_string).and_modify(|a| {*a += size}).or_insert(size);
+                }
             }
-            
         }
     }
-    // let test_vec = vec![
 
-    // 274615
-    // ,220692
-    // ,21309
-    // ,12989
-    // ,46352
-    // ,307491
-    // ,164053
-    // ,144223
-    // ,274358
-    // ,573
-    // ,298079
-    // ,33689
-    // ,287144
-    // ,164244
-    // ,52508
-    // ,195017
-    // ,64762
-    // ,56148
-    // ,28260
-    // ,91675
-    // ,205543
-    // ,37910
-    // ,290553
-    // ,175411
-    // ,73620
-    // ,125475
-    // ,106099
-    // ,136746
-    // ,8406
-    // ,55902
-    // ,269256];
-
-    // println!("{}", test_vec.iter().sum::<i32>());
-    println!("{:?}", &dir_map);
-
+    if args.part_one{
     let mut result = dir_map.iter().map(|a| *a.1).filter(|b| b < &100_000).collect::<Vec<_>>();
 
 
@@ -113,6 +80,29 @@ fn main() {
     let total_bytes: usize = result.iter().sum();
 
     println!("total_bytes = {total_bytes}");
+
+    }
+
+    if args.part_two {
+        let total_storage_used = dir_map.get("/").unwrap();
+        let max_storage = 70000000_usize;
+        let needed_storage_available = 30000000_usize;
+
+        let total_unused_storage = &max_storage - total_storage_used;
+
+        let result = dir_map.iter().filter(|(_, &size)| size + total_unused_storage >= needed_storage_available).collect::<Vec<(_,_)>>();
+        println!("smallest dirs = {:?}", result);
+        let min = result.iter().reduce(|accum, item| {
+            if accum.1 > item.1 {
+                item
+            } else {
+                accum
+            }
+        }).unwrap();
+
+        println!("dir to move = {:?}", min);
+    }
+    
 
     println!("executed in {}mc", now.elapsed().as_micros());
 
