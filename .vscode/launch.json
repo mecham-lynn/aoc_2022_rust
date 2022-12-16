@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug day_10",
+            "name": "Debug day_11",
             "cargo": {
                 "args": [
                     "build",
-                        "--bin=day_10",
-                        "--package=day_10"
+                        "--bin=day_11",
+                        "--package=day_11"
                 ],
                 "filter": {
-                    "name": "day_10",
+                    "name": "day_11",
                     "kind": "bin"
                 }
             },
