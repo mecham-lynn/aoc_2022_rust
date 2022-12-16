@@ -2,7 +2,6 @@ use std::{time::Instant, str::FromStr, ops::{Sub, SubAssign, Add, AddAssign}, fm
 use anyhow::anyhow;
 
 use helpers::AocArgs;
-use itertools::Itertools;
 fn main() {
     let now = Instant::now();
     let args: AocArgs = argh::from_env();
@@ -15,20 +14,15 @@ fn main() {
 
     let commands: Vec<Command> = input_txt.lines().flat_map(|f| f.split_once(" ").map(|(d, a)| Command::new(d, a).unwrap())).collect();
 
-    // let mut rope = Rope::new();
-    let mut rope: HashMap<usize, Position> = if args.part_two{
-            (0_usize..10).into_iter().map(|a| (a, Position::new())).collect()
-        } else {
-            HashMap::from([(0, Position::new()), (1, Position::new())])
-        };
+    let mut rope = Rope::new();
+
     let mut tail_positions: HashSet<Position> = HashSet::new();
 
     for command in &commands {
-        execute_command(&mut rope, command, &mut tail_positions)
+        rope.execute_command(command, &mut tail_positions, args.part_one)
     }
 
-    println!("\n\nall visited tail positions {:?}\n\n", tail_positions);
-    // println!("unique visited tail positions {:?}\n\n", tail_positions);
+
     println!("number of positions tail visited {}", tail_positions.iter().count());
 
 
@@ -157,128 +151,66 @@ impl From<&Direction> for Position {
     }
 }
 
+impl Default for Position {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct Rope {
     head: Position,
-    tail: Position
-}
-
-impl Display for Rope {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"head_pos: {}, tail_pos: {}", self.head, self.tail)
-    }
+    tail: [Position; 9]
 }
 
 impl Rope {
     pub fn new() -> Self {
         Self {
             head: Position { x: 0, y: 0 },
-            tail: Position { x: 0, y: 0 },
+            tail: [Position::new(); 9],
         }
     }
     /// Changes the postion of the Head and Tail of the rope
-    fn execute_command(&mut self, command: &Command, tail_positions: &mut HashSet<Position>){
-        println!("Command {:?}", &command);
+    fn execute_command(&mut self, command: &Command, tail_positions: &mut HashSet<Position>, part_one: bool){
+        // println!("Command {:?}", &command);
 
         //move in the direction for the number of times in the command
         let offset = Position::from(&command.direction);
         for _dir_amount in 1..=command.amount {
-            let orig_head = self.head;
+            // add the offset to the head
             self.head += offset;
 
-            // println!("distance between head and tail {}", self.get_distance_between_head_and_tail());
-            if self.get_distance_between_head_and_tail() > 1 {
-                
-                self.tail = orig_head
-                
-            }
-            // println!("Tail is at position {}", self.tail);
-            tail_positions.insert(self.tail);
+            // trigger the next section of the rope to follow
+           Self::follow(&self.head, &mut self.tail[0]);
+
+           // insert the current position of the last rope segment (i.e the tail) to a HashSet<Position>
+           if part_one {
+                tail_positions.insert(self.tail[0]);
+           } else {
+                for i in 1..9 {
+                    let (new_head, next_tail) = self.tail.split_at_mut(i);
+                    Self::follow(&new_head[i - 1], &mut next_tail[0]);
+                }
+                tail_positions.insert(self.tail[8]);
+           }
         }
 
     }
 
-    fn get_distance_between_head_and_tail(&self) -> i32 {
-        // println!("sub result {}", result);
-        // (result.x - result.y).abs()
-        let result = f32::sqrt((self.head.x as f32 - self.tail.x as f32).powi(2) + (self.head.y as f32 - self.tail.y as f32).powi(2));
-        result.abs() as i32
+    /// Check the distance between the leading_pos and next_knot. 
+    /// If it is greater than 0 we need to change the position of next_knot.
+    fn follow(leading_pos: &Position, next_knot: &mut Position) {
+        let dx = leading_pos.x - next_knot.x;
+        let dy = leading_pos.y - next_knot.y;
 
-    }
-
-}
-
-pub fn execute_command(rope: &mut HashMap<usize, Position>, command: &Command, tail_positions: &mut HashSet<Position>) {
-    // println!("Command {:?}", &command);
-
-    let offset = Position::from(&command.direction);
-    for _dir_amount in 1..=command.amount{
-        let mut previous_pos = rope[&0];
-       
-        for i in 0..rope.len() - 1 {
-            let front_pos = rope[&i];
-            // let orig_front_pos = *front_pos;
-
-            
-            let tail_index = rope.len() - 1;
-            let tail_pos = rope[&tail_index];
-            
-            let next_pos = rope.get(&{i + 1}).unwrap();
-            let new_front_pos = if i == 0 {
-                front_pos.clone() + offset
-            } else {
-                previous_pos
-            };
-
-            previous_pos = front_pos.clone();
-
-            
-
-            if new_front_pos.get_distance_between_two_points(next_pos) > 1 {
-                // if i == 0 {
-                //     // only the head should move using the offset
-                //     rope.entry(0).and_modify(|a| {*a += offset});
-                // }
-
-                rope.entry(i + 1).and_modify(|entry| *entry = previous_pos);
-                
-                
-            }
-
-            rope.entry(i).and_modify(|entry| *entry = new_front_pos);
-
-
-            tail_positions.insert(tail_pos);
-            // let front_knot = rope.get_mut(&i).unwrap();
-            // let orig_front_pos = *front_knot;
-            // // let next_knot = rope.get_mut(&{i + 1}).unwrap();
-
-            // if front_knot.get_distance_between_two_points(rope.get_many_mut(&{i + 1}).unwrap()) > 1 {
-            //     rope.entry(i + 1).and_modify(|a| *a = orig_front_pos);
-            // }
-            
+        if (dx.abs() + dy.abs() > 1) && (dx.abs() > 1 || dy.abs() > 1) {
+            next_knot.x += dx.signum();
+            next_knot.y += dy.signum();
         }
     }
-    // for _dir_amount in 1..=command.amount {
-
-    // }
-
-    //move in the direction for the number of times in the command
-    // let offset = Position::from(&command.direction);
-    // for _dir_amount in 1..=command.amount {
-    //     let orig_head = self.head;
-    //     self.head += offset;
-
-    //     // println!("distance between head and tail {}", self.get_distance_between_head_and_tail());
-    //     if self.get_distance_between_head_and_tail() > 1 {
-            
-    //         self.tail = orig_head
-            
-    //     }
-    //     // println!("Tail is at position {}", self.tail);
-    //     tail_positions.insert(self.tail);
-    // }
 
 }
+
+
 
 
