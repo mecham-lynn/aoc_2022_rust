@@ -7,8 +7,10 @@ fn main() {
     let args: AocArgs = argh::from_env();
 
     let input_txt = if args.demo_text {
+        println!("Demo text enabled");
         include_str!("../input-demo.txt")
     } else {
+        println!("Demo text disabled");
         include_str!("../input.txt")
     };
 
