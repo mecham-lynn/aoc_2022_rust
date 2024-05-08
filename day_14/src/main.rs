@@ -1,9 +1,6 @@
 use helpers::AocArgs;
-use std::cmp::Ordering;
-use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufWriter, Write};
-use std::thread::current;
 use std::time::Instant;
 
 fn main() {
@@ -53,26 +50,36 @@ fn main() {
 
     loop {
         current_sand.fall(&room);
+        if args.part_two && current_sand.current_location.y >= max_y{
+            // add sand location to room
+            room.push((current_sand.current_location.clone(), FillType::Sand));
+            // sort room so binary search works
+            room.sort_by(|a,b |a.0.partial_cmp(&b.0).unwrap());
+            // start a new sand particle falling
+            current_sand = Sand::new();
+            // increment the count of particles
+            sand_units += 1;
+        }
         match current_sand.state {
+            
             SandState::Falling => if current_sand.current_location.y >= max_y && !args.part_two {
                 break
             },
             SandState::Resting => {
-                // if part_two only break when sand is at it's starting location (blocking the entrance)
-                if args.part_two {
-                    if current_sand.current_location == Point::new_from_num(500, 0) {
-                        break;
-                    }
-                }
                 
                 // add sand location to room
                 room.push((current_sand.current_location.clone(), FillType::Sand));
                 // sort room so binary search works
                 room.sort_by(|a,b |a.0.partial_cmp(&b.0).unwrap());
+                
+                sand_units += 1;
+                // if part_two only break when sand is at it's starting location (blocking the entrance)
+                if args.part_two && current_sand.current_location == Point::new_from_num(500, 0) {
+                    break;
+                }
                 // start a new sand particle falling
                 current_sand = Sand::new();
                 // increment the count of particles
-                sand_units += 1;
             },
         }
     }
@@ -143,7 +150,7 @@ fn find_view_bounds(room: &Room) -> (usize, usize, usize){
     
     // println!("min_x: {min_x}, max_x: {max_x}, max_y: {max_y}");
     
-    (min_x, max_x, max_y + 2)
+    (min_x, max_x, max_y + 1)
 }
 
 fn round_val_up(num: usize) -> usize {
